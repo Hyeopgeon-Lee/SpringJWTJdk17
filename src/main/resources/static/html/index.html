@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>메인화면</title>
+    <link rel="stylesheet" href="/css/table.css"/>
+    <script type="text/javascript" src="/js/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript">
+
+        // HTML로딩이 완료되고, 실행됨
+        $(document).ready(function () {
+
+            loginInfo();  // 로그인 정보 호출
+
+            // 회원가입
+            $("#btnReg").on("click", function () { // 버튼 클릭했을때, 발생되는 이벤트 생성함(onclick 이벤트와 동일함)
+                location.href = "/html/ss/userRegForm.html";
+            })
+
+            // 로그인
+            $("#btnLogin").on("click", function () { // 버튼 클릭했을때, 발생되는 이벤트 생성함(onclick 이벤트와 동일함)
+                location.href = "/html/ss/login.html";
+            })
+            // 회원정보
+            $("#btnUserInfo").on("click", function () { // 버튼 클릭했을때, 발생되는 이벤트 생성함(onclick 이벤트와 동일함)
+                location.href = "/html/user/userInfo.html";
+            })
+
+        })
+
+
+        function loginInfo() {
+            // Ajax 호출해서 로그인하기
+            $.ajax({
+                url: "/login/v1/loginInfo",
+                type: "post", // 전송방식은 Post
+                dataType: "JSON", // 전송 결과는 JSON으로 받기
+            }).then(
+                function (json) { // 성공
+
+                    const result = json.data;
+
+                    const loginId = result.userId;
+
+                    if (loginId === "") { // 로그인 안된 경우
+                        $("#user").text("로그인되지 않았습니다.")
+                        $("#btnReg").css("display", "block");
+                        $("#btnLogin").css("display", "block");
+                        $("#btnUserInfo").css("display", "none");
+
+                    } else { // 로그인 된 경우
+                        $("#user").text(loginId + "님이 로그인하였습니다.")
+                        $("#btnReg").css("display", "none");
+                        $("#btnLogin").css("display", "none");
+                        $("#btnUserInfo").css("display", "block");
+                    }
+
+                },
+                function () { // 실패
+                    alert("에러가 발생하였습니다. \n다음에 다시 시도하길 바랍니다."); // 메시지 띄우기
+
+                }
+            );
+        }
+    </script>
+</head>
+<body>
+<h2>프로젝트 첫 화면!(메인화면입니다.)</h2>
+<hr/>
+<br/>
+<div class="divTable minimalistBlack">
+    <div class="divTableBody">
+        <div class="divTableRow">
+            <div class="divTableCell" id="user"></div>
+        </div>
+    </div>
+</div>
+<div>
+    <button id="btnReg" type="button" style="display:none">회원가입(로그인 안되면 보이는 버튼)</button>
+    <button id="btnLogin" type="button" style="display:none">로그인(로그인 안되면 보이는 버튼)</button>
+    <button id="btnUserInfo" type="button" style="display:none">회원정보(로그인 되면 보이는 버튼)</button>
+</div>
+</body>
+</html>
