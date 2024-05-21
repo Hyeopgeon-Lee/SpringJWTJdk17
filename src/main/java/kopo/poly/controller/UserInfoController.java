@@ -30,15 +30,14 @@ public class UserInfoController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping(value = "userInfo")
-    public ResponseEntity<CommonResponse> userInfo(HttpServletRequest request) throws Exception {
+    public ResponseEntity<CommonResponse<UserInfoDTO>> userInfo(HttpServletRequest request) throws Exception {
 
         log.info(this.getClass().getName() + ".userInfo Start!");
 
-        // 토큰 가져오기
+        // 쿠키에서 Access Token 값 가져오기
         String accessToken = CmmUtil.nvl(jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS_TOKEN));
 
-
-        // Session 저장된 로그인한 회원아이디 가져오기
+        // JWT 토큰에 저장된로그인한 회원아이디 가져오기
         String userId = jwtTokenProvider.getTokenInfo(accessToken).userId();
 
         UserInfoDTO pDTO = UserInfoDTO.builder().userId(userId).build();

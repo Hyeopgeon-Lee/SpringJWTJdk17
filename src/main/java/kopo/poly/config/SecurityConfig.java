@@ -73,7 +73,6 @@ public class SecurityConfig {
 
                 // 세션 사용하지 않도록 설정함
                 .sessionManagement(ss -> ss.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-        ;
 
         return http.build();
     }

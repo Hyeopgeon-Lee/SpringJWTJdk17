@@ -55,7 +55,7 @@ public record UserInfoDTO(
      */
     public static UserInfoDTO createUser(UserInfoDTO pDTO, String password, String roles) throws Exception {
 
-        UserInfoDTO rDTO = UserInfoDTO.builder()
+        return UserInfoDTO.builder()
                 .userId(pDTO.userId())
                 .userName(pDTO.userName())
                 .password(password) // Spring Security 생성해준 암호화된 비밀번호
@@ -67,8 +67,6 @@ public record UserInfoDTO(
                 .regDt(DateUtil.getDateTime("yyyy-MM-dd hh:mm:ss"))
                 .chgId(pDTO.userId())
                 .chgDt(DateUtil.getDateTime("yyyy-MM-dd hh:mm:ss")).build();
-
-        return rDTO;
     }
 
     /**
@@ -77,7 +75,7 @@ public record UserInfoDTO(
      */
     public static UserInfoEntity of(UserInfoDTO dto) {
 
-        UserInfoEntity entity = UserInfoEntity.builder()
+        return UserInfoEntity.builder()
                 .userId(dto.userId())
                 .userName(dto.userName())
                 .password(dto.password())
@@ -89,8 +87,6 @@ public record UserInfoDTO(
                 .regDt(dto.regDt())
                 .chgId(dto.chgId())
                 .chgDt(dto.chgDt()).build();
-
-        return entity;
     }
 
     /**
@@ -99,7 +95,7 @@ public record UserInfoDTO(
      */
     public static UserInfoDTO from(UserInfoEntity entity) throws Exception {
 
-        UserInfoDTO rDTO = UserInfoDTO.builder()
+        return UserInfoDTO.builder()
                 .userId(entity.getUserId())
                 .userName(entity.getUserName())
                 .password(entity.getPassword())
@@ -111,8 +107,6 @@ public record UserInfoDTO(
                 .regDt(entity.getRegDt())
                 .chgId(entity.getChgId())
                 .chgDt(entity.getChgDt()).build();
-
-        return rDTO;
     }
 }
 

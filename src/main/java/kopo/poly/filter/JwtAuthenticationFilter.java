@@ -63,7 +63,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } else if (accessTokenStatus == JwtStatus.EXPIRED ||
                 accessTokenStatus == JwtStatus.DENIED) { // 만료 및 쿠키에서 삭제된 Access Token인 경우
 
-            // Access Token이 만료되면, Refresh Token 유효한지 체크한
+            // Access Token이 만료되면, Refresh Token 유효한지 체크함
             // Refresh Token 확인하기
             String refreshToken = CmmUtil.nvl(jwtTokenProvider.resolveToken(request, JwtTokenType.REFRESH_TOKEN));
 
@@ -84,7 +84,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 log.info("refreshToken userRoles : " + userRoles);
 
                 // Access Token 재 발급
-                String reAccessToken = jwtTokenProvider.createToken(userId, userRoles, JwtTokenType.ACCESS_TOKEN);
+                String reAccessToken = jwtTokenProvider.createToken(dto, JwtTokenType.ACCESS_TOKEN);
 
                 log.info("accessTokenName : " + accessTokenName);
                 ResponseCookie cookie = ResponseCookie.from(accessTokenName, "")
@@ -142,14 +142,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = CmmUtil.nvl(request.getServletPath()); // Request URI
 
-        boolean res = false;
-
         // html, css, js 폴더 호출은 JWT 체크 안함
-        if (path.contains("/css/") || path.contains("/js/") ||
-                path.contains("/login/v1/") || path.contains("/reg/v1")) {
-            res = true;
-
-        }
+        boolean res = path.contains("/css/") || path.contains("/js/") ||
+                path.contains("/login/v1/") || path.contains("/reg/v1") || path.contains("/favicon.ico");
 
         log.info("res : " + path + " / " + res);
 

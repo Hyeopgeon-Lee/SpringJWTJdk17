@@ -15,9 +15,5 @@ public interface UserInfoRepository extends JpaRepository<UserInfoEntity, String
     // 쿼리 예 : SELECT * FROM USER_INFO WHERE USER_ID = 'hglee67'
     Optional<UserInfoEntity> findByUserId(String userId);
 
-    // 로그인
-    // 쿼리 예 : SELECT * FROM USER_INFO WHERE USER_ID = 'hglee67' AND PASSWORD = '1234'
-    Optional<UserInfoEntity> findByUserIdAndPassword(String userId, String password);
-
 }
 

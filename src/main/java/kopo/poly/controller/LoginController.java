@@ -1,10 +1,11 @@
 package kopo.poly.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import kopo.poly.auth.AuthInfo;
 import kopo.poly.controller.response.CommonResponse;
 import kopo.poly.dto.MsgDTO;
+import kopo.poly.dto.TokenDTO;
 import kopo.poly.dto.UserInfoDTO;
 import kopo.poly.jwt.JwtTokenProvider;
 import kopo.poly.jwt.JwtTokenType;
@@ -44,8 +45,8 @@ public class LoginController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping(value = "loginSuccess")
-    public ResponseEntity<CommonResponse> loginSuccess(@AuthenticationPrincipal AuthInfo authInfo,
-                                                       HttpServletResponse response) {
+    public ResponseEntity<CommonResponse<MsgDTO>> loginSuccess(@AuthenticationPrincipal AuthInfo authInfo,
+                                                               HttpServletResponse response) {
 
         log.info(this.getClass().getName() + ".loginSuccess Start!");
 
@@ -60,8 +61,11 @@ public class LoginController {
         log.info("userName : " + userName);
         log.info("userRoles : " + userRoles);
 
+        // 생성할 토큰 정보
+        TokenDTO tDTO = TokenDTO.builder().userId(userId).userName(userName).role(userRoles).build();
+
         // Access Token 생성
-        String accessToken = jwtTokenProvider.createToken(userId, userRoles, JwtTokenType.ACCESS_TOKEN);
+        String accessToken = jwtTokenProvider.createToken(tDTO, JwtTokenType.ACCESS_TOKEN);
 
         ResponseCookie cookie = ResponseCookie.from(accessTokenName, accessToken)
                 .domain("localhost")
@@ -75,14 +79,15 @@ public class LoginController {
         // 기존 쿠기 모두 삭제하고, Cookie에 Access Token 저장하기
         response.setHeader("Set-Cookie", cookie.toString());
 
-        cookie = null;
+        // 생성할 토큰 정보
+        tDTO = TokenDTO.builder().userId(userId).userName(userName).role(userRoles).build();
 
         // Refresh Token 생성
         // Refresh Token은 보안상 노출되면, 위험하기에 Refresh Token은 DB에 저장하고,
         // DB를 조회하기 위한 값만 Refresh Token으로 생성함
         // 본 실습은 DB에 저장하지 않고, 사용자 컴퓨터의 쿠키에 저장함
         // Refresh Token은 Access Token에 비해 만료시간을 길게 설정함
-        String refreshToken = jwtTokenProvider.createToken(userId, userRoles, JwtTokenType.REFRESH_TOKEN);
+        String refreshToken = jwtTokenProvider.createToken(tDTO, JwtTokenType.REFRESH_TOKEN);
 
         cookie = ResponseCookie.from(refreshTokenName, refreshToken)
                 .domain("localhost")
@@ -107,7 +112,7 @@ public class LoginController {
     }
 
     @PostMapping(value = "loginFail")
-    public ResponseEntity<CommonResponse> loginFail() {
+    public ResponseEntity<CommonResponse<MsgDTO>> loginFail() {
 
         log.info(this.getClass().getName() + ".loginFail Start!");
 
@@ -125,17 +130,28 @@ public class LoginController {
      * 로그인 정보 가져오기
      */
     @PostMapping(value = "loginInfo")
-    public ResponseEntity<CommonResponse> loginInfo(HttpSession session) {
+    public ResponseEntity<CommonResponse<UserInfoDTO>> loginInfo(HttpServletRequest request) {
 
         log.info(this.getClass().getName() + ".loginInfo Start!");
 
-        // Session 저장된 로그인한 회원 정보 가져오기
-        String userId = CmmUtil.nvl((String) session.getAttribute("SS_USER_ID"));
-        String userName = CmmUtil.nvl((String) session.getAttribute("SS_USER_NAME"));
-        String roles = CmmUtil.nvl((String) session.getAttribute("SS_USER_ROLE"));
+        // 쿠키에서 Access Token 값 가져오기
+        String accessToken = CmmUtil.nvl(jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS_TOKEN));
 
-        // 세션 값 전달할 데이터 구조 만들기
-        UserInfoDTO dto = UserInfoDTO.builder().userId(userId).userName(userName).roles(roles).build();
+        UserInfoDTO dto;
+
+        if (accessToken.isEmpty()) { // 로그인 되지 않았다면....
+            dto = UserInfoDTO.builder().userId("").userName("").roles("").build();
+
+        } else { // 로그인 되었다면....
+
+            // JWT 토큰에 저장된로그인한 회원아이디 가져오기
+            TokenDTO tokenDTO = jwtTokenProvider.getTokenInfo(accessToken);
+
+            // 세션 값 전달할 데이터 구조 만들기
+            dto = UserInfoDTO.builder().userId(tokenDTO.userId()).userName(tokenDTO.userName())
+                    .roles(tokenDTO.role()).build();
+        }
+
 
         log.info(this.getClass().getName() + ".loginInfo End!");
 

@@ -49,31 +49,29 @@ public class JwtTokenProvider {
     /**
      * JWT 토큰(Access Token)생성
      *
-     * @param userId 회원 아이디(ex. hglee67)
-     * @param roles  회원 권한
+     * @param dto 회원아이디, 회원이름, 권한, 토큰 타입
      * @return 인증 처리한 정보(로그인 성공, 실패)
      */
-    public String createToken(String userId, String roles, JwtTokenType tokenType) {
+    public String createToken(TokenDTO dto, JwtTokenType jwtTokenType) {
 
         log.info(this.getClass().getName() + ".createToken Start!");
 
-        log.info("userId : " + userId);
-
         long validTime = 0;
 
-        if (tokenType == JwtTokenType.ACCESS_TOKEN) { // Access Token이라면
+        if (jwtTokenType == JwtTokenType.ACCESS_TOKEN) { // Access Token이라면
             validTime = (accessTokenValidTime);
 
-        } else if (tokenType == JwtTokenType.REFRESH_TOKEN) { // Refresh Token이라면
+        } else if (jwtTokenType == JwtTokenType.REFRESH_TOKEN) { // Refresh Token이라면
             validTime = (refreshTokenValidTime);
 
         }
 
         Claims claims = Jwts.claims()
                 .setIssuer(creator) // JWT 토큰 생성자 기입함
-                .setSubject(userId); // 회원아이디 저장 : PK 저장(userId)
+                .setSubject(dto.userId()); // 회원아이디 저장 : PK 저장(userId)
 
-        claims.put("roles", roles); // JWT Paylaod에 정의된 기본 옵션 외 정보를 추가 - 사용자 권한 추가
+        claims.put("userName", dto.userName()); // JWT Paylaod에 정의된 기본 옵션 외 정보를 추가 - 사용자 이름 추가
+        claims.put("roles", dto.role()); // JWT Paylaod에 정의된 기본 옵션 외 정보를 추가 - 사용자 권한 추가
         Date now = new Date();
 
         // 보안키 문자들을 JWT Key 형태로 변경하기
@@ -83,7 +81,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setClaims(claims) // 정보 저장
                 .setIssuedAt(now) // 토큰 발행 시간 정보
-                .setExpiration(new Date(now.getTime() + (accessTokenValidTime * 1000))) // set Expire Time
+                .setExpiration(new Date(now.getTime() + (validTime * 1000))) // set Expire Time
                 .signWith(secret, SignatureAlgorithm.HS256)  // 사용할 암호화 알고리즘과
                 .compact();
 

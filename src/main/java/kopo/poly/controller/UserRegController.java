@@ -30,7 +30,7 @@ public class UserRegController {
     private final PasswordEncoder bCryptPasswordEncoder;
 
     @PostMapping(value = "getUserIdExists")
-    public ResponseEntity<CommonResponse> getUserIdExists(@RequestBody UserInfoDTO pDTO) throws Exception {
+    public ResponseEntity<CommonResponse<UserInfoDTO>> getUserIdExists(@RequestBody UserInfoDTO pDTO) throws Exception {
 
         log.info(this.getClass().getName() + ".getUserIdExists Start!");
 
