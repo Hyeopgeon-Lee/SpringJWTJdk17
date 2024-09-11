@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @Component
@@ -54,7 +53,7 @@ public class JwtTokenProvider {
      */
     public String createToken(TokenDTO dto, JwtTokenType jwtTokenType) {
 
-        log.info(this.getClass().getName() + ".createToken Start!");
+        log.info("{}.createToken Start!", this.getClass().getName());
 
         long validTime = 0;
 
@@ -95,7 +94,8 @@ public class JwtTokenProvider {
      */
     public TokenDTO getTokenInfo(String token) {
 
-        log.info(this.getClass().getName() + ".getTokenInfo Start!");
+        log.
+                info("{}.getTokenInfo Start!", this.getClass().getName());
 
         // 보안키 문자들을 JWT Key 형태로 변경하기
         SecretKey secret = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey));
@@ -106,13 +106,13 @@ public class JwtTokenProvider {
         String userId = CmmUtil.nvl(claims.getSubject());
         String role = CmmUtil.nvl((String) claims.get("roles")); // LoginService 생성된 토큰의 권한명과 동일
 
-        log.info("userId : " + userId);
-        log.info("role : " + role);
+        log.info("userId : {}", userId);
+        log.info("role : {}", role);
 
         // TokenDTO는 자바17의 Record 객체 사용했기에 빌더패턴 적용함
         TokenDTO rDTO = TokenDTO.builder().userId(userId).role(role).build();
 
-        log.info(this.getClass().getName() + ".getTokenInfo End!");
+        log.info("{}.getTokenInfo End!", this.getClass().getName());
 
         return rDTO;
     }
@@ -128,8 +128,8 @@ public class JwtTokenProvider {
      */
     public Authentication getAuthentication(String token) {
 
-        log.info(this.getClass().getName() + ".getAuthentication Start!");
-        log.info("getAuthentication : " + token);
+        log.info("{}.getAuthentication Start!", this.getClass().getName());
+        log.info("getAuthentication : {}", token);
 
         TokenDTO rDTO = getTokenInfo(token); // 토큰에 저장된 정보 가져오기
 
@@ -139,8 +139,8 @@ public class JwtTokenProvider {
         // JWT 토큰에 저장된 사용자 아이디 : ROLE_USER
         String roles = CmmUtil.nvl(rDTO.role());
 
-        log.info("user_id : " + userId);
-        log.info("roles : " + roles);
+        log.info("user_id : {}", userId);
+        log.info("roles : {}", roles);
 
         Set<GrantedAuthority> pSet = new HashSet<>();
         if (!roles.isEmpty()) { //DB에 저장된 Role이 있는 경우에만 실행
@@ -150,7 +150,7 @@ public class JwtTokenProvider {
             }
         }
 
-        log.info(this.getClass().getName() + ".getAuthentication End!");
+        log.info("{}.getAuthentication End!", this.getClass().getName());
 
         // Spring Security가 로그인 성공된 정보를 Spring Security에서 사용하기 위해
         // Spring Security용 UsernamePasswordAuthenticationToken 생성
@@ -168,10 +168,10 @@ public class JwtTokenProvider {
      */
     public String resolveToken(HttpServletRequest request, JwtTokenType tokenType) {
 
-        log.info(this.getClass().getName() + ".resolveToken Start!");
+        log.info("{}.resolveToken Start!", this.getClass().getName());
 
-        AtomicReference<String> token = new AtomicReference<>(""); // 토큰
         String tokenName;
+        String token;
 
         if (tokenType == JwtTokenType.ACCESS_TOKEN) { // Access Token이라면
             tokenName = accessTokenName;
@@ -183,15 +183,22 @@ public class JwtTokenProvider {
             tokenName = "";
         }
 
-        // 쿠키에 존재하는 여러 값 중 쿠키 이름이 accessTokenName 쿠키 찾은 뒤, 그 값을 전달
-        Cookie cookie = Arrays.stream(request.getCookies()).filter(c -> c.getName().equals(tokenName)).findAny()
-                .orElseGet(() -> new Cookie(tokenName, ""));
+        if (request.getCookies() == null) { // 쿠키에 값이 없다면...
+            token = "";
 
-        token.set(CmmUtil.nvl(cookie.getValue()));
+        } else {
 
-        log.info(this.getClass().getName() + ".resolveToken End!");
+            // 쿠키에 존재하는 여러 값 중 쿠키 이름이 accessTokenName 쿠키 찾은 뒤, 그 값을 전달
+            Cookie cookie = Arrays.stream(request.getCookies()).filter(c -> c.getName().equals(tokenName)).findAny()
+                    .orElseGet(() -> new Cookie(tokenName, ""));
 
-        return token.get();
+            token = cookie.getValue();
+
+        }
+
+        log.info("{}.resolveToken End!", this.getClass().getName());
+
+        return token;
     }
 
     /**

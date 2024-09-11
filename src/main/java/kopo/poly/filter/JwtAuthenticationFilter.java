@@ -143,7 +143,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = CmmUtil.nvl(request.getServletPath()); // Request URI
 
         // html, css, js 폴더 호출은 JWT 체크 안함
-        boolean res = path.contains("/css/") || path.contains("/js/") ||
+        boolean res = path.contains("/css/") || path.contains("/js/") || path.contains("/html/") ||
                 path.contains("/login/v1/") || path.contains("/reg/v1") || path.contains("/favicon.ico");
 
         log.info("res : " + path + " / " + res);
