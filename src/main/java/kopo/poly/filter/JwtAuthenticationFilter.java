@@ -9,6 +9,7 @@ import kopo.poly.jwt.JwtStatus;
 import kopo.poly.jwt.JwtTokenProvider;
 import kopo.poly.jwt.JwtTokenType;
 import kopo.poly.util.CmmUtil;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,20 +36,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        log.info(this.getClass().getName() + ".doFilterInternal Start!");
+        log.info("{}.doFilterInternal Start!", this.getClass().getName());
 
         // 쿠키에서 Access Token 가져오기
         String accessToken = CmmUtil.nvl(jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS_TOKEN));
 
-        log.info("accessToken : " + accessToken);
+        log.info("accessToken : {}", accessToken);
 
         // Access Token 유효기간 검증하기
         JwtStatus accessTokenStatus = jwtTokenProvider.validateToken(accessToken);
 
-        log.info("accessTokenStatus : " + accessTokenStatus);
+        log.info("accessTokenStatus : {}", accessTokenStatus);
 
         // 유효기간 검증하기
         if (accessTokenStatus == JwtStatus.ACCESS) {
@@ -70,7 +71,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Refresh Token 유효기간 검증하기
             JwtStatus refreshTokenStatus = jwtTokenProvider.validateToken(refreshToken);
 
-            log.info("refreshTokenStatus : " + refreshTokenStatus);
+            log.info("refreshTokenStatus : {}", refreshTokenStatus);
 
             // Refresh Token이 유효하면, Access Token 재발급
             if (refreshTokenStatus == JwtStatus.ACCESS) {
@@ -80,13 +81,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String userId = CmmUtil.nvl(dto.userId()); // 회원 아이디
                 String userRoles = CmmUtil.nvl(dto.role()); // 회원 권한
 
-                log.info("refreshToken userId : " + userId);
-                log.info("refreshToken userRoles : " + userRoles);
+                log.info("refreshToken userId : {}", userId);
+                log.info("refreshToken userRoles : {}", userRoles);
 
                 // Access Token 재 발급
                 String reAccessToken = jwtTokenProvider.createToken(dto, JwtTokenType.ACCESS_TOKEN);
 
-                log.info("accessTokenName : " + accessTokenName);
+                log.info("accessTokenName : {}", accessTokenName);
                 ResponseCookie cookie = ResponseCookie.from(accessTokenName, "")
                         .maxAge(0)
                         .build();
@@ -124,7 +125,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         }
 
-        log.info(this.getClass().getName() + ".doFilterInternal End!");
+        log.info("{}.doFilterInternal End!", this.getClass().getName());
 
         filterChain.doFilter(request, response);
 
@@ -138,7 +139,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
 
-        log.info(this.getClass().getName() + ".shouldNotFilter Start!");
+        log.info("{}.shouldNotFilter Start!", this.getClass().getName());
 
         String path = CmmUtil.nvl(request.getServletPath()); // Request URI
 
@@ -146,9 +147,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         boolean res = path.contains("/css/") || path.contains("/js/") || path.contains("/html/index.html") ||
                 path.contains("/login/v1/") || path.contains("/reg/v1") || path.contains("/favicon.ico");
 
-        log.info("res : " + path + " / " + res);
+        log.info("res : {} / {}", path, res);
 
-        log.info(this.getClass().getName() + ".shouldNotFilter End!");
+        log.info("{}.shouldNotFilter End!", this.getClass().getName());
 
         return res;
     }

@@ -104,10 +104,10 @@ public class JwtTokenProvider {
         Claims claims = Jwts.parserBuilder().setSigningKey(secret).build().parseClaimsJws(token).getBody();
 
         String userId = CmmUtil.nvl(claims.getSubject());
+        String userName = CmmUtil.nvl((String) claims.get("userName")); // LoginService 생성된 토큰의 권한명과 동일
         String role = CmmUtil.nvl((String) claims.get("roles")); // LoginService 생성된 토큰의 권한명과 동일
 
-        log.info("userId : {}", userId);
-        log.info("role : {}", role);
+        log.info("userId: {}, userName: {}, role: {}", userId, userName, role);
 
         // TokenDTO는 자바17의 Record 객체 사용했기에 빌더패턴 적용함
         TokenDTO rDTO = TokenDTO.builder().userId(userId).role(role).build();
@@ -139,8 +139,7 @@ public class JwtTokenProvider {
         // JWT 토큰에 저장된 사용자 아이디 : ROLE_USER
         String roles = CmmUtil.nvl(rDTO.role());
 
-        log.info("user_id : {}", userId);
-        log.info("roles : {}", roles);
+        log.info("user_id: {}, roles: {}", userId, roles);
 
         Set<GrantedAuthority> pSet = new HashSet<>();
         if (!roles.isEmpty()) { //DB에 저장된 Role이 있는 경우에만 실행
