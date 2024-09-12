@@ -10,8 +10,6 @@ import kopo.poly.util.DateUtil;
 import kopo.poly.util.EncryptUtil;
 import lombok.Builder;
 
-import java.io.Serializable;
-
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record UserInfoDTO(
@@ -48,7 +46,7 @@ public record UserInfoDTO(
         // 회원가입시, 중복가입을 방지 위해 사용할 변수
         // DB를 조회해서 회원이 존재하면 Y값을 반환함
         // DB테이블에 존재하지 않는 가상의 컬럼(ALIAS)
-        String existsYn) implements Serializable {
+        String existsYn) {
 
     /**
      * 패스워드, 권한 등 회원 가입을 위한 정보 만들기
