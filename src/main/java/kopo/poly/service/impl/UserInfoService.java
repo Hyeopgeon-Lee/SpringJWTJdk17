@@ -24,9 +24,9 @@ public class UserInfoService implements IUserInfoService {
     private final UserInfoRepository userInfoRepository;
 
     @Override
-    public UserInfoDTO getUserIdExists(UserInfoDTO pDTO) throws Exception {
+    public UserInfoDTO getUserIdExists(UserInfoDTO pDTO) {
 
-        log.info(this.getClass().getName() + ".getUserIdExists Start!");
+        log.info("{}.getUserIdExists Start!", this.getClass().getName());
 
         AtomicReference<UserInfoDTO> atomicReference = new AtomicReference<>(); // 람다로 인해 값을 공유하지 못하여 AtomicReference 사용함
 
@@ -39,7 +39,7 @@ public class UserInfoService implements IUserInfoService {
 
         });
 
-        log.info(this.getClass().getName() + ".getUserIdExists End!");
+        log.info("{}.getUserIdExists End!", this.getClass().getName());
 
         return atomicReference.get();
     }
@@ -59,9 +59,9 @@ public class UserInfoService implements IUserInfoService {
     @SneakyThrows
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-        log.info(this.getClass().getName() + ".loadUserByUsername Start!");
+        log.info("{}.loadUserByUsername Start!", this.getClass().getName());
 
-        log.info("userId : " + userId);
+        log.info("userId : {}", userId);
 
         // 로그인 요청한 사용자 아이디를 검색함
         // SELECT * FROM USER_INFO WHERE USER_ID = 'hglee67'
@@ -78,11 +78,11 @@ public class UserInfoService implements IUserInfoService {
     @Override
     public int insertUserInfo(UserInfoDTO pDTO) {
 
-        log.info(this.getClass().getName() + ".insertUserInfo Start!");
+        log.info("{}.insertUserInfo Start!", this.getClass().getName());
 
-        int res = 0; // 회원가입 성공 : 1, 아이디 중복으로인한 가입 취소 : 2, 기타 에러 발생 : 0
+        int res; // 회원가입 성공 : 1, 아이디 중복으로인한 가입 취소 : 2, 기타 에러 발생 : 0
 
-        log.info("pDTO : " + pDTO);
+        log.info("pDTO : {}", pDTO);
 
         // 회원 가입 중복 방지를 위해 DB에서 데이터 조회
         Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(pDTO.userId());
@@ -102,7 +102,7 @@ public class UserInfoService implements IUserInfoService {
 
         }
 
-        log.info(this.getClass().getName() + ".insertUserInfo End!");
+        log.info("{}.insertUserInfo End!", this.getClass().getName());
 
         return res;
     }
@@ -110,17 +110,17 @@ public class UserInfoService implements IUserInfoService {
     @Override
     public UserInfoDTO getUserInfo(UserInfoDTO pDTO) throws Exception {
 
-        log.info(this.getClass().getName() + ".getUserInfo Start!");
+        log.info("{}.getUserInfo Start!", this.getClass().getName());
 
         // 회원아이디
         String user_id = CmmUtil.nvl(pDTO.userId());
 
-        log.info("user_id : " + user_id);
+        log.info("user_id : {}", user_id);
 
         // SELECT * FROM USER_INFO WHERE USER_ID = 'hglee67' 쿼리 실행과 동일
         UserInfoDTO rDTO = UserInfoDTO.from(userInfoRepository.findByUserId(user_id).orElseThrow());
 
-        log.info(this.getClass().getName() + ".getUserInfo End!");
+        log.info("{}.getUserInfo End!", this.getClass().getName());
 
         return rDTO;
     }

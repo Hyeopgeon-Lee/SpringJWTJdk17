@@ -2,8 +2,6 @@ package kopo.poly.auth;
 
 import kopo.poly.dto.UserInfoDTO;
 import kopo.poly.util.CmmUtil;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -14,14 +12,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 
+/**
+ * @param userInfoDTO 로그인된 사용자 정보 UserInfoRepository로부터 조회된 정보를 저장하기 위한 객체
+ */
 @Slf4j
-@Getter
-@RequiredArgsConstructor
-public class AuthInfo implements UserDetails {
-
-    // 로그인된 사용자 정보
-    // UserInfoRepository로부터 조회된 정보를 저장하기 위한 객체
-    private final UserInfoDTO userInfoDTO;
+public record AuthInfo(UserInfoDTO userInfoDTO) implements UserDetails {
 
     /**
      * 로그인한 사용자의 권한 부여하기

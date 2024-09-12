@@ -6,7 +6,7 @@ public class CmmUtil {
 
 		if (str == null) {
 			res = chg_str;
-		} else if (str.equals("")) {
+		} else if (str.isEmpty()) {
 			res = chg_str;
 		} else {
 			res = str;
@@ -27,10 +27,10 @@ public class CmmUtil {
 	}
 	
 	public static String checked(String[] str, String com_str){
-		for(int i=0;i<str.length;i++){
-			if(str[i].equals(com_str))
-				return " checked";
-		}
+        for (String s : str) {
+            if (s.equals(com_str))
+                return " checked";
+        }
 		return "";
 	}
 	

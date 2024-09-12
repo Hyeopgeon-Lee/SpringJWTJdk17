@@ -48,18 +48,18 @@ public class LoginController {
     public ResponseEntity<CommonResponse<MsgDTO>> loginSuccess(@AuthenticationPrincipal AuthInfo authInfo,
                                                                HttpServletResponse response) {
 
-        log.info(this.getClass().getName() + ".loginSuccess Start!");
+        log.info("{}.loginSuccess Start!", this.getClass().getName());
 
         // Spring Security에 저장된 정보 가져오기
-        UserInfoDTO rDTO = Optional.ofNullable(authInfo.getUserInfoDTO()).orElseGet(() -> UserInfoDTO.builder().build());
+        UserInfoDTO rDTO = Optional.ofNullable(authInfo.userInfoDTO()).orElseGet(() -> UserInfoDTO.builder().build());
 
         String userId = CmmUtil.nvl(rDTO.userId());
         String userName = CmmUtil.nvl(rDTO.userName());
         String userRoles = CmmUtil.nvl(rDTO.roles());
 
-        log.info("userId : " + userId);
-        log.info("userName : " + userName);
-        log.info("userRoles : " + userRoles);
+        log.info("userId : {}", userId);
+        log.info("userName : {}", userName);
+        log.info("userRoles : {}", userRoles);
 
         // 생성할 토큰 정보
         TokenDTO tDTO = TokenDTO.builder().userId(userId).userName(userName).role(userRoles).build();
@@ -104,7 +104,7 @@ public class LoginController {
         // 결과 메시지 전달하기
         MsgDTO dto = MsgDTO.builder().result(1).msg(userName + "님 로그인이 성공하였습니다.").build();
 
-        log.info(this.getClass().getName() + ".loginSuccess End!");
+        log.info("{}.loginSuccess End!", this.getClass().getName());
 
         return ResponseEntity.ok(
                 CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), dto));
@@ -114,12 +114,12 @@ public class LoginController {
     @PostMapping(value = "loginFail")
     public ResponseEntity<CommonResponse<MsgDTO>> loginFail() {
 
-        log.info(this.getClass().getName() + ".loginFail Start!");
+        log.info("{}.loginFail Start!", this.getClass().getName());
 
         // 결과 메시지 전달하기
         MsgDTO dto = MsgDTO.builder().result(1).msg("로그인이 실패하였습니다.").build();
 
-        log.info(this.getClass().getName() + ".loginFail End!");
+        log.info("{}.loginFail End!", this.getClass().getName());
 
         return ResponseEntity.ok(
                 CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), dto));
@@ -132,7 +132,7 @@ public class LoginController {
     @PostMapping(value = "loginInfo")
     public ResponseEntity<CommonResponse<UserInfoDTO>> loginInfo(HttpServletRequest request) {
 
-        log.info(this.getClass().getName() + ".loginInfo Start!");
+        log.info("{}.loginInfo Start!", this.getClass().getName());
 
         // 쿠키에서 Access Token 값 가져오기
         String accessToken = CmmUtil.nvl(jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS_TOKEN));
@@ -153,7 +153,7 @@ public class LoginController {
         }
 
 
-        log.info(this.getClass().getName() + ".loginInfo End!");
+        log.info("{}.loginInfo End!", this.getClass().getName());
 
         return ResponseEntity.ok(
                 CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), dto));

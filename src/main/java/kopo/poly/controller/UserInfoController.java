@@ -32,7 +32,7 @@ public class UserInfoController {
     @PostMapping(value = "userInfo")
     public ResponseEntity<CommonResponse<UserInfoDTO>> userInfo(HttpServletRequest request) throws Exception {
 
-        log.info(this.getClass().getName() + ".userInfo Start!");
+        log.info("{}.userInfo Start!", this.getClass().getName());
 
         // 쿠키에서 Access Token 값 가져오기
         String accessToken = CmmUtil.nvl(jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS_TOKEN));
@@ -46,7 +46,7 @@ public class UserInfoController {
         UserInfoDTO rDTO = Optional.ofNullable(userInfoService.getUserInfo(pDTO))
                 .orElseGet(() -> UserInfoDTO.builder().build());
 
-        log.info(this.getClass().getName() + ".userInfo End!");
+        log.info("{}.userInfo End!", this.getClass().getName());
 
         return ResponseEntity.ok(
                 CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));

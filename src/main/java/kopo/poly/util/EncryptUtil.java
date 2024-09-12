@@ -9,6 +9,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
@@ -32,8 +33,8 @@ public class EncryptUtil {
      */
 
     //초기 백터(16바이트 크기를 가지며, 16바이트 단위로 암호화시, 암호화할 총 길이가 16바이트가 되지 못하면 뒤에 추가하는 바이트)
-    final static byte[] ivBytes = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-            0x00, 0x00, 0x00, 0x00,	0x00, 0x00, 0x00, 0x00 };
+    final static byte[] ivBytes = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
     //AES128-CBC 암호화 알고리즘에 사용되는 키 (16자리 문자만 가능함)
     final static String key = "PolyTechnic12345"; //16글자(영문자 1글자당 1바이트임)
@@ -47,7 +48,7 @@ public class EncryptUtil {
      */
     public static String encHashSHA256(String str) {
 
-        String res = ""; // 암호화 결과괎이 저장되는 변수
+        String res; // 암호화 결과괎이 저장되는 변수
         String plantText = addMessage + str; // 암호화 시킬 값에 보안강화를 위해 임의 값을 추가함
 
         try {
@@ -58,12 +59,12 @@ public class EncryptUtil {
 
             sh.update(plantText.getBytes());
 
-            byte byteData[] = sh.digest();
+            byte[] byteData = sh.digest();
 
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
 
-            for (int i = 0; i < byteData.length; i++) {
-                sb.append(Integer.toString((byteData[i] & 0xff) + 0x100, 16).substring(1));
+            for (byte byteDatum : byteData) {
+                sb.append(Integer.toString((byteDatum & 0xff) + 0x100, 16).substring(1));
 
             }
 
@@ -71,8 +72,6 @@ public class EncryptUtil {
 
             // 자바에서 제공하지 알고리즘이 아닌 경우, 에러 발생
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-
             res = "";
         }
 
@@ -81,20 +80,19 @@ public class EncryptUtil {
     }
 
 
-
     /**
      * AES128 CBC 암호화 함수
-     *
+     * <p>
      * 128은 암호화 키 길이를 의미함 128비트는 = 16바이트(1바이트=8비트 * 16 = 128)
      */
     public static String encAES128CBC(String str)
-            throws UnsupportedEncodingException, NoSuchAlgorithmException, NoSuchPaddingException,
+            throws NoSuchAlgorithmException, NoSuchPaddingException,
             InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException {
 
-        byte[] textBytes = str.getBytes("UTF-8");
+        byte[] textBytes = str.getBytes(StandardCharsets.UTF_8);
         AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivBytes);
-        SecretKeySpec newKey = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
-        Cipher cipher = null;
+        SecretKeySpec newKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "AES");
+        Cipher cipher;
         cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, newKey, ivSpec);
         return Base64.encodeBase64String(cipher.doFinal(textBytes));
@@ -102,7 +100,7 @@ public class EncryptUtil {
 
     /**
      * AES128 CBC 복호화 함수
-     *
+     * <p>
      * 128은 암호화 키 길이를 의미함 128비트는 = 16바이트(1바이트=8비트 * 16 = 128)
      */
     public static String decAES128CBC(String str)
@@ -112,9 +110,9 @@ public class EncryptUtil {
         byte[] textBytes = Base64.decodeBase64(str);
         // byte[] textBytes = str.getBytes("UTF-8");
         AlgorithmParameterSpec ivSpec = new IvParameterSpec(ivBytes);
-        SecretKeySpec newKey = new SecretKeySpec(key.getBytes("UTF-8"), "AES");
+        SecretKeySpec newKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "AES");
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, newKey, ivSpec);
-        return new String(cipher.doFinal(textBytes), "UTF-8");
+        return new String(cipher.doFinal(textBytes), StandardCharsets.UTF_8);
     }
 }
