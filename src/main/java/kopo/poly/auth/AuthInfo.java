@@ -51,6 +51,7 @@ public record AuthInfo(UserInfoDTO userInfoDTO) implements UserDetails {
     @Override
     public String getPassword() {
         return CmmUtil.nvl(userInfoDTO.password());
+
     }
 
     // 계정 만료 여부 반환
