@@ -57,9 +57,7 @@ public class LoginController {
         String userName = CmmUtil.nvl(rDTO.userName());
         String userRoles = CmmUtil.nvl(rDTO.roles());
 
-        log.info("userId : {}", userId);
-        log.info("userName : {}", userName);
-        log.info("userRoles : {}", userRoles);
+        log.info("userId : {}, userName : {}, userRoles : {}", userId, userName, userRoles);
 
         // 생성할 토큰 정보
         TokenDTO tDTO = TokenDTO.builder().userId(userId).userName(userName).role(userRoles).build();
