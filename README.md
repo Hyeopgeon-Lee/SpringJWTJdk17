@@ -24,13 +24,14 @@
 
 ---
 
-## 🛠️ 주요 기술 스택
+## 🚀 주요 적용 프레임워크
 
-| **항목**        | **버전/기술**                          |
-|------------------|----------------------------------------|
-| **Java 버전**   | 17                                     |
-| **프레임워크**  | Spring Boot, Spring Security, JWT      |
-| **데이터베이스**| MariaDB                                |
+1. **Spring Boot Frameworks**
+2. **Thymeleaf Frameworks**
+3. **Spring Data JPA**
+4. **Spring Security**
+5. **JWT**
+6. **MariaDB**
 
 ---
 
@@ -66,9 +67,6 @@ spring:
     url: jdbc:mariadb://localhost:3306/your_database
     username: your_username
     password: your_password
-  jpa:
-    hibernate:
-      ddl-auto: update
 ```
 
 ### 3. 의존성 설치 및 빌드
