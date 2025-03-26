@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @Slf4j
 @RequestMapping(value = "/reg/v1")
 @RequiredArgsConstructor
@@ -26,71 +25,85 @@ public class UserRegController {
 
     private final IUserInfoService userInfoSsService;
 
-    // Spring Security에서 제공하는 비밀번호 암호화 객체(해시 함수)
+    // Spring Security에서 제공하는 비밀번호 암호화 객체 (BCrypt 해시 함수)
     private final PasswordEncoder bCryptPasswordEncoder;
 
+    /**
+     * 입력된 아이디의 존재 여부를 체크하는 API
+     *
+     * @param pDTO 사용자로부터 전달받은 ID
+     * @return 존재 여부를 담은 UserInfoDTO
+     */
     @PostMapping(value = "getUserIdExists")
-    public ResponseEntity<CommonResponse<UserInfoDTO>> getUserIdExists(@RequestBody UserInfoDTO pDTO) throws Exception {
+    public ResponseEntity<CommonResponse<UserInfoDTO>> getUserIdExists(@RequestBody UserInfoDTO pDTO)
+            throws Exception {
 
-        log.info("{}.getUserIdExists Start!", this.getClass().getName());
+        log.info("{}.getUserIdExists Start!", getClass().getName());
 
         UserInfoDTO rDTO = userInfoSsService.getUserIdExists(pDTO);
 
-        log.info("{}.getUserIdExists End!", this.getClass().getName());
+        log.info("{}.getUserIdExists End!", getClass().getName());
 
         return ResponseEntity.ok(
                 CommonResponse.of(HttpStatus.OK, HttpStatus.OK.series().name(), rDTO));
     }
 
+    /**
+     * 사용자 회원가입 처리 API
+     * - 유효성 검증 처리
+     * - 패스워드 암호화
+     * - 가입 실패/성공 메시지 반환
+     *
+     * @param pDTO          사용자로부터 입력받은 회원가입 정보
+     * @param bindingResult 유효성 검증 결과 객체
+     * @return 처리 결과 메시지를 담은 CommonResponse
+     */
     @PostMapping(value = "insertUserInfo")
-    public ResponseEntity<CommonResponse> insertUserInfo(@Valid @RequestBody UserInfoDTO pDTO,
-                                                         BindingResult bindingResult) {
+    public ResponseEntity<?> insertUserInfo(@Valid @RequestBody UserInfoDTO pDTO, BindingResult bindingResult) {
 
-        log.info("{}.insertUserInfo Start!", this.getClass().getName());
+        log.info("{}.insertUserInfo Start!", getClass().getName());
 
-        if (bindingResult.hasErrors()) { // Spring Validation 맞춰 잘 바인딩되었는지 체크
-            return CommonResponse.getErrors(bindingResult); // 유효성 검증 결과에 따른 에러 메시지 전달
-
+        // 1. 유효성 검증 실패 시 에러 메시지 반환
+        if (bindingResult.hasErrors()) {
+            return CommonResponse.getErrors(bindingResult);
         }
 
-        int res = 0; // 회원가입 결과
-        String msg = ""; //회원가입 결과에 대한 메시지를 전달할 변수
-        MsgDTO dto; // 결과 메시지 구조
+        int res = 0; // 회원가입 처리 결과 코드
+        String msg = ""; // 처리 결과 메시지
+        MsgDTO dto; // 응답 메시지 객체
 
-        // 	 반드시, 값을 받았으면, 꼭 로그를 찍어서 값이 제대로 들어오는지 파악해야함, 반드시 작성할 것
         log.info("pDTO : {}", pDTO);
 
         try {
-            // 웹으로 입력받은 정보와 비밀번호, 권한 추가한 회원 가입 정보 생성하기
+            // 2. 전달받은 회원 정보에 비밀번호 암호화 및 권한 추가
             UserInfoDTO nDTO = UserInfoDTO.createUser(
-                    pDTO, bCryptPasswordEncoder.encode(pDTO.password()), UserRole.USER.getValue());
+                    pDTO,
+                    bCryptPasswordEncoder.encode(pDTO.password()),
+                    UserRole.USER.getValue()
+            );
 
-
+            // 3. 회원가입 처리
             res = userInfoSsService.insertUserInfo(nDTO);
 
             log.info("회원가입 결과(res) : {}", res);
 
+            // 4. 처리 결과 메시지 구성
             if (res == 1) {
                 msg = "회원가입되었습니다.";
-
             } else if (res == 2) {
                 msg = "이미 가입된 아이디입니다.";
-
             } else {
                 msg = "오류로 인해 회원가입이 실패하였습니다.";
-
             }
 
         } catch (Exception e) {
-            //저장이 실패되면 사용자에게 보여줄 메시지
             msg = "실패하였습니다. : " + e;
             res = 2;
-            log.info(e.toString());
+            log.error("회원가입 중 예외 발생", e);
 
         } finally {
             dto = MsgDTO.builder().result(res).msg(msg).build();
-
-            log.info("{}.insertUserInfo End!", this.getClass().getName());
+            log.info("{}.insertUserInfo End!", getClass().getName());
         }
 
         return ResponseEntity.ok(
