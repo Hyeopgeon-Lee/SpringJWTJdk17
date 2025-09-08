@@ -12,9 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -23,26 +21,30 @@ public class UserInfoService implements IUserInfoService {
 
     private final UserInfoRepository userInfoRepository;
 
+    @Transactional(readOnly = true) // 조회 전용 트랜잭션:
+    // - 영속성 컨텍스트의 Dirty Checking/Flush 생략 → 불필요한 쓰기 방지
+    // - 일부 DB/드라이버에 read-only 힌트 전달(최적화 가능)
     @Override
     public UserInfoDTO getUserIdExists(UserInfoDTO pDTO) {
 
-        log.info("{}.getUserIdExists Start!", this.getClass().getName());
+        // Repository에서 userId로 조회
+        // - 반환 타입이 Optional<UserInfoEntity>라서 null 대신 "값이 있음/없음"을 표현
+        return userInfoRepository.findByUserId(pDTO.userId())
 
-        AtomicReference<UserInfoDTO> atomicReference = new AtomicReference<>(); // 람다로 인해 값을 공유하지 못하여 AtomicReference 사용함
+                // [값이 있는 경우] ⇒ 해당 아이디가 존재하므로 existsYn = "Y" 인 DTO를 만들어 반환
+                // - 엔티티의 상세 필드는 이 시나리오에 필요 없어서 만들지 않음(불필요한 매핑 비용 절감)
+                .map(e -> UserInfoDTO.builder()
+                        .existsYn("Y")
+                        .build())
 
-        // ifPresentOrElse 값이 존재할 떄와 값이 존재 안할 때, 수행할 내용을 정의(람다 표현식 사용)
-        userInfoRepository.findByUserId(pDTO.userId()).ifPresentOrElse(entity -> {
-            atomicReference.set(UserInfoDTO.builder().existsYn("Y").build()); // 객체에 값이 존재한다면...
-
-        }, () -> {
-            atomicReference.set(UserInfoDTO.builder().existsYn("N").build()); // 값이 존재하지 않는다면...
-
-        });
-
-        log.info("{}.getUserIdExists End!", this.getClass().getName());
-
-        return atomicReference.get();
+                // [값이 없는 경우] ⇒ 해당 아이디가 존재하지 않음 → existsYn = "N" 인 DTO 생성
+                // - orElseGet(Supplier)은 "없을 때만" 람다를 실행함
+                //   (orElse(...)는 항상 인자를 먼저 만들어 성능상 손해가 될 수 있음)
+                .orElseGet(() -> UserInfoDTO.builder()
+                        .existsYn("N")
+                        .build());
     }
+
 
     /**
      * Spring Security에서 로그인 처리를 하기 위해 실행하는 함수
@@ -76,36 +78,44 @@ public class UserInfoService implements IUserInfoService {
     }
 
     @Override
+    @Transactional // 트랜잭션 보장 (쓰기 작업 포함이므로 readOnly=false가 기본)
     public int insertUserInfo(UserInfoDTO pDTO) {
 
         log.info("{}.insertUserInfo Start!", this.getClass().getName());
 
-        int res; // 회원가입 성공 : 1, 아이디 중복으로인한 가입 취소 : 2, 기타 에러 발생 : 0
+        // 반환 코드: 1 = 가입 성공, 2 = 아이디 중복, 0 = 기타 예외
+        int res;
 
         log.info("pDTO : {}", pDTO);
 
-        // 회원 가입 중복 방지를 위해 DB에서 데이터 조회
-        Optional<UserInfoEntity> rEntity = userInfoRepository.findByUserId(pDTO.userId());
+        try {
+            // 1. 회원 아이디 중복 여부 확인
+            boolean exists = userInfoRepository.existsById(pDTO.userId());
 
-        // 값이 존재한다면... (이미 회원가입된 아이디)
-        if (rEntity.isPresent()) {
-            res = 2;
+            if (exists) {
+                // 이미 같은 아이디가 존재 → 중복 가입 방지
+                res = 2;
 
-        } else {
-            // 회원가입을 위한 Entity 생성
-            UserInfoEntity pEntity = UserInfoDTO.of(pDTO);
+            } else {
+                // 2. DTO → Entity 변환
+                UserInfoEntity pEntity = UserInfoDTO.of(pDTO);
 
-            // 회원정보 DB에 저장
-            userInfoRepository.save(pEntity);
+                // 3. DB 저장
+                userInfoRepository.save(pEntity);
 
-            res = 1;
+                res = 1;
+            }
 
+        } catch (Exception e) {
+            log.error("insertUserInfo error", e);
+            res = 0; // 예외 발생 시 0 반환
         }
 
-        log.info("{}.insertUserInfo End!", this.getClass().getName());
+        log.info("{}.insertUserInfo End! res={}", this.getClass().getName(), res);
 
         return res;
     }
+
 
     @Override
     public UserInfoDTO getUserInfo(UserInfoDTO pDTO) throws Exception {
