@@ -105,7 +105,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
 
                 // CORS: 게이트웨이/프록시에서 처리하는 경우 꺼두지만,
-                //  - 프런트가 다른 Origin에서 호출한다면 CorsConfigurationSource를 등록해 http.cors(...).configurationSource(...) 로 활성화
+                //  - 프런트가 다른 Origin에서 호출한다면 CorsConfigurationSource를 등록해
+                //  http.cors(...).configurationSource(...) 로 활성화
                 .cors(AbstractHttpConfigurer::disable)
 
                 /* =======================
