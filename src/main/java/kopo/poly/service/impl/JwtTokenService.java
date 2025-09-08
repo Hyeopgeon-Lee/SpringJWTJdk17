@@ -79,28 +79,6 @@ public class JwtTokenService implements IJwtTokenService {
     private String refreshCookie;
 
     /**
-     * Access Token 생성.
-     *
-     * @param user 토큰에 반영할 최소 사용자 정보(특히 userId 필수)
-     * @return 서명된 JWT 문자열
-     */
-    @Override
-    public String generateAccessToken(UserInfoDTO user) {
-        return encode(user, accessTtlSec, TYPE_ACCESS);
-    }
-
-    /**
-     * Refresh Token 생성.
-     *
-     * @param user 토큰에 반영할 최소 사용자 정보(특히 userId 필수)
-     * @return 서명된 JWT 문자열
-     */
-    @Override
-    public String generateRefreshToken(UserInfoDTO user) {
-        return encode(user, refreshTtlSec, TYPE_REFRESH);
-    }
-
-    /**
      * 공통 인코딩 로직.
      * - 토큰 유효기간, 타입(access/refresh)만 다르게 설정하여 재사용한다.
      */
@@ -127,7 +105,7 @@ public class JwtTokenService implements IJwtTokenService {
     }
 
     /**
-     * 권한 문자열 CSV를 List<String>으로 변환.
+     * 권한 문자열(ROLE_ADMIN, ROLE_USER)을 List<String>으로 변환.
      * 값이 비어있으면 기본값으로 "USER" 부여.
      */
     private static List<String> splitRoles(String roles) {
@@ -136,6 +114,28 @@ public class JwtTokenService implements IJwtTokenService {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Access Token 생성.
+     *
+     * @param user 토큰에 반영할 최소 사용자 정보(특히 userId 필수)
+     * @return 서명된 JWT 문자열
+     */
+    @Override
+    public String generateAccessToken(UserInfoDTO user) {
+        return encode(user, accessTtlSec, TYPE_ACCESS);
+    }
+
+    /**
+     * Refresh Token 생성.
+     *
+     * @param user 토큰에 반영할 최소 사용자 정보(특히 userId 필수)
+     * @return 서명된 JWT 문자열
+     */
+    @Override
+    public String generateRefreshToken(UserInfoDTO user) {
+        return encode(user, refreshTtlSec, TYPE_REFRESH);
     }
 
     /**
