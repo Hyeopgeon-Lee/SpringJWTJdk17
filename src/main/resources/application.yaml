@@ -24,7 +24,7 @@ jwt:
     access:
       valid:
         time: 300
-      name: jwtAcccessToken
+      name: jwtAccessToken
     refresh:
       valid:
         time: 3000
